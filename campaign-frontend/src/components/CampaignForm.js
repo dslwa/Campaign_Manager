@@ -5,13 +5,20 @@ import api from '../api/axiosConfig';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 
-const keywordOptions = [
-  'shoes','hats','books','gadgets','electronics','games','clothing'
-];
-
 export default function CampaignForm({ editMode }) {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [keywordOptions, setKeywordOptions] = useState([]);
+
+  useEffect(() => {
+    api.get('/keywords')
+      .then(res => setKeywordOptions(res.data))
+      .catch(err => {
+        console.error('Error:', err);
+      });
+  }, []);
+
   const [form, setForm] = useState({
     name: '',
     keywords: '',
