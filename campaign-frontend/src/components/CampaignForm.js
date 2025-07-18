@@ -10,7 +10,8 @@ export default function CampaignForm({ editMode }) {
   const navigate = useNavigate();
 
   const [keywordOptions, setKeywordOptions] = useState([]);
-
+  const [townOptions, setTownOptions] = useState([]);
+  
   useEffect(() => {
     api.get('/keywords')
       .then(res => setKeywordOptions(res.data))
@@ -18,6 +19,14 @@ export default function CampaignForm({ editMode }) {
         console.error('Error:', err);
       });
   }, []);
+
+
+   useEffect(() => {
+    api.get('/towns')
+      .then(res => setTownOptions(res.data))
+      .catch(console.error);
+  }, []);
+
 
   const [form, setForm] = useState({
     name: '',
@@ -78,8 +87,6 @@ export default function CampaignForm({ editMode }) {
        .catch(console.error);
   };
   
-  const townOptions = ['Warsaw','Cracow','Berlin','Helsinki','Barcelona', 'Milano'];
-  
   if (loading) return <Spinner animation="border" />;
 
   return (
@@ -106,6 +113,9 @@ export default function CampaignForm({ editMode }) {
         placeholder="Choose keywords"
         isInvalid={form.keywords.split(',').filter(Boolean).length === 0}
         clearButton/>
+        <Form.Control.Feedback type="invalid">
+          You have to choose atleast one option
+        </Form.Control.Feedback>  
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -138,12 +148,20 @@ export default function CampaignForm({ editMode }) {
         </Form.Group>
 
         <Form.Group className="mb-3">
-            <Form.Label>Town</Form.Label>
-            <Form.Select name="town" value={form.town} onChange={handleChange} required>
-                <option value="">Choose Town</option>
-                 {townOptions.map(t => <option key={t} value={t}>{t}</option>)}
-        </Form.Select>
+        <Form.Label>Town</Form.Label>
+        <Form.Select
+          name="town"
+          value={form.town}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Choose Town</option>
+          {townOptions.map(t => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </Form.Select>  
         </Form.Group>
+
 
         <Form.Group className="mb-3">
           <Form.Label>Radius (km)</Form.Label>
