@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { Typeahead } from 'react-bootstrap-typeahead';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+
+const keywordOptions = [
+  'shoes','hats','books','gadgets','electronics','games','clothing'
+];
 
 export default function CampaignForm({ editMode }) {
   const { id } = useParams();
@@ -78,9 +84,21 @@ export default function CampaignForm({ editMode }) {
           <Form.Control name="name" value={form.name} onChange={handleChange} required />
         </Form.Group>
 
+
         <Form.Group className="mb-3">
-          <Form.Label>Keywords (comma separeated)</Form.Label>
-          <Form.Control name="keywords" value={form.keywords} onChange={handleChange} required/>
+          <Form.Label>Keywords (typeahead)</Form.Label>
+          <Typeahead
+          id="keywords"
+          multiple
+          options={keywordOptions}
+          selected={ form.keywords ? form.keywords.split(',') : [] }
+          onChange={selected => setForm(prev => ({
+          ...prev,
+        keywords: selected.join(',')
+        }))}
+        placeholder="Choose keywords"
+        isInvalid={form.keywords.split(',').filter(Boolean).length === 0}
+        clearButton/>
         </Form.Group>
 
         <Form.Group className="mb-3">
