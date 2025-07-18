@@ -64,7 +64,9 @@ export default function CampaignForm({ editMode }) {
     req.then(() => navigate('/campaigns'))
        .catch(console.error);
   };
-
+  
+  const townOptions = ['Warsaw','Cracow','Berlin','Helsinki','Barcelona', 'Milano'];
+  
   if (loading) return <Spinner animation="border" />;
 
   return (
@@ -111,8 +113,11 @@ export default function CampaignForm({ editMode }) {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Town</Form.Label>
-          <Form.Control name="town" value={form.town} onChange={handleChange}/>
+            <Form.Label>Town</Form.Label>
+            <Form.Select name="town" value={form.town} onChange={handleChange} required>
+                <option value="">Choose Town</option>
+                 {townOptions.map(t => <option key={t} value={t}>{t}</option>)}
+        </Form.Select>
         </Form.Group>
 
         <Form.Group className="mb-3">
