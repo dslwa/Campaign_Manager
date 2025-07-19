@@ -46,10 +46,10 @@ jobs:
           npx eslint src --max-warnings=0
           npx prettier --check .
 
-  deploy:
+  deploy-to-heroku:
     name: Deploy to Heroku
     runs-on: ubuntu-latest
-    needs: [build-and-test, lint-frontend]
+    needs: [ build-and-test, lint-frontend ]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
@@ -58,14 +58,19 @@ jobs:
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
 
-     
       - name: Heroku Container Login
-        run: heroku container:login
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku container:login
 
-      - name: Deploy Docker container to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          usedocker: true
+      - name: Build & Push Docker image
+        run: |
+          docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web campaign
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+
+      - name: Release on Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
