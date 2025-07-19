@@ -116,4 +116,64 @@ class CampaignControllerTest {
                 .andExpect(jsonPath("$.id", is(7)));
     }
 
+    @Test
+    void updateExistingShouldReturnUpdatedDto() throws Exception {
+        // given
+        CreateCampaignRequest req = new CreateCampaignRequest(
+                "Upd", List.of("kw"),
+                BigDecimal.valueOf(1.0), BigDecimal.valueOf(50),
+                false, "Town", 5
+        );
+        Campaign entity = new Campaign();
+        entity.setId(9L);
+        when(mapper.toEntity(req)).thenReturn(entity);
+        when(svc.update(9L, entity)).thenReturn(entity);
+        CampaignDto dto = new CampaignDto(9L, "Upd", List.of("kw"),
+                BigDecimal.valueOf(1.0), BigDecimal.valueOf(50),
+                false, "Town", 5);
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        // when/then
+        mvc.perform(put("/api/campaigns/9")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(9)))
+                .andExpect(jsonPath("$.name", is("Upd")));
+    }
+
+    @Test
+    void updateNonExistingShouldReturn404() throws Exception {
+        CreateCampaignRequest req = new CreateCampaignRequest(
+                "Nope", List.of("x"),
+                BigDecimal.ONE, BigDecimal.ONE,
+                true, null, 0
+        );
+        Campaign entity = new Campaign();
+        when(mapper.toEntity(req)).thenReturn(entity);
+        doThrow(new CampaignNotFoundException("Campaign not found: 99"))
+                .when(svc).update(99L, entity);
+
+        mvc.perform(put("/api/campaigns/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(req)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteExistingShouldReturnNoContent() throws Exception {
+        mvc.perform(delete("/api/campaigns/3"))
+                .andExpect(status().isNoContent());
+
+        verify(svc).delete(3L);
+    }
+
+    @Test
+    void deleteNonExistingShouldReturn404() throws Exception {
+        doThrow(new CampaignNotFoundException("Campaign not found: 123"))
+                .when(svc).delete(123L);
+
+        mvc.perform(delete("/api/campaigns/123"))
+                .andExpect(status().isNotFound());
+    }
 }
