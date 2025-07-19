@@ -125,6 +125,29 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+
+			<!-- Jacoco -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.10</version>
+				<executions>
+					<execution><goals><goal>prepare-agent</goal></goals></execution>
+					<execution><id>report</id><phase>test</phase><goals><goal>report</goal></goals></execution>
+				</executions>
+			</plugin>
+
+			<!-- SpotBugs -->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.7.3.0</version>
+				<executions>
+					<execution><phase>verify</phase><goals><goal>spotbugs</goal></goals></execution>
+				</executions>
+				<configuration><failOnError>true</failOnError></configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
