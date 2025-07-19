@@ -1,13 +1,54 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.form-control,
+.form-select {
+  border-radius: 0.375rem;
+  box-shadow: none;
+}
+
+.navbar {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1.5rem;
+}
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.card {
+  border: none;
+  border-radius: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-footer {
+  background: transparent;
+  border-top: none;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-outline-primary,
+.btn-outline-danger {
+  flex: 1;
+  border-radius: 0.375rem;
+}
+
+.form-container {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+@media (min-width: 768px) {
+  .form-row {
+    margin-bottom: 1.5rem;
+  }
 }

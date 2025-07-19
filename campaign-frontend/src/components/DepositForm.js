@@ -1,45 +1,52 @@
 import React, { useState } from 'react';
-import { Form, Button, Alert } from 'react-bootstrap';
+import { Form, Button, InputGroup, FormControl, Alert } from 'react-bootstrap';
 import api from '../api/axiosConfig';
 
 export default function DepositForm({ onBalanceUpdate }) {
   const [amount, setAmount] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError]   = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleDeposit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
-    const amt = parseFloat(amount);
-    if (isNaN(amt) || amt <= 0) {
-      setError('Amount must be a positive number');
+
+    const value = parseFloat(amount);
+    if (isNaN(value) || value <= 0) {
+      setError('Please enter a positive amount.');
       return;
     }
-    api.post(`/account/deposit?amount=${amt}`)
-      .then(res => {
-        onBalanceUpdate(res.data.balance);
-        setAmount('');
-      })
-      .catch(err => {
-        console.error(err);
-        setError('Deposit failed');
+
+    setLoading(true);
+    try {
+      const res = await api.post('/account/deposit', null, {
+        params: { amount: value }
       });
+      onBalanceUpdate(res.data.balance);
+      setAmount('');
+    } catch (e) {
+      setError('Deposit failed.');
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Form onSubmit={handleDeposit} className="mb-3 d-flex align-items-start">
-      <Form.Group>
-        <Form.Control
-          type="number"
-          step="0.01"
-          placeholder="Deposit amount"
+    <Form onSubmit={handleSubmit} className="mb-3">
+      <Form.Label>Deposit Funds</Form.Label>
+      <InputGroup>
+        <FormControl
+          placeholder="Amount"
           value={amount}
           onChange={e => setAmount(e.target.value)}
+          disabled={loading}
         />
-      </Form.Group>
-      <Button type="submit" variant="success" className="ms-2">
-        Deposit
-      </Button>
-      {error && <Alert variant="danger" className="mt-2 w-100">{error}</Alert>}
+        <Button type="submit" variant="outline-success" disabled={loading}>
+          {loading ? '...' : 'Deposit'}
+        </Button>
+      </InputGroup>
+      {error && <Alert variant="danger" className="mt-2">{error}</Alert>}
     </Form>
   );
 }

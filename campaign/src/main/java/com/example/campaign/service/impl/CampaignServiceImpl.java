@@ -8,6 +8,7 @@ import com.example.campaign.service.CampaignService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -42,10 +43,19 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional
     public Campaign update(Long id, Campaign c) {
-        if (!repo.existsById(id)) {
-            throw new CampaignNotFoundException(id);
+        Campaign existing = repo.findById(id)
+                .orElseThrow(() -> new CampaignNotFoundException(id));
+
+        BigDecimal oldFund = existing.getCampaignFund();
+        BigDecimal newFund = c.getCampaignFund();
+        BigDecimal diff = newFund.subtract(oldFund);
+
+        if (diff.compareTo(BigDecimal.ZERO) > 0) {
+            accountSvc.deduct(diff);
+        } else if (diff.compareTo(BigDecimal.ZERO) < 0) {
+            accountSvc.deposit(diff.abs());
         }
-        accountSvc.deduct(c.getCampaignFund());
+
         c.setId(id);
         return repo.save(c);
     }

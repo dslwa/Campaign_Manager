@@ -1,19 +1,30 @@
 package com.example.campaign.api.controller;
 
+import com.example.campaign.persistence.CampaignRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/keywords")
 public class KeywordController {
 
-    private static final List<String> DICT = List.of(
-            "shoes","hats","books","gadgets","electronics","games","clothing"
-    );
+    private final CampaignRepository repo;
 
-    @GetMapping("/api/keywords")
+    public KeywordController(CampaignRepository repo) {
+        this.repo = repo;
+    }
+
+    @GetMapping
     public List<String> getKeywords() {
-        return DICT;
+        return repo.findAll().stream()
+                .flatMap(c -> c.getKeywords().stream())
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 }

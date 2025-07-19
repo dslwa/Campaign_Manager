@@ -5,9 +5,18 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
-@Table(name = "campaign")
+@SequenceGenerator(
+        name = "campaignSeq",
+        sequenceName = "campaign_seq",
+        initialValue = 11,
+        allocationSize = 1
+)
 public class Campaign {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "campaignSeq"
+    )
     private Long id;
 
     @Column(nullable = false)

@@ -1,0 +1,6 @@
+#FileLock
+#Sat Jul 19 14:29:10 UTC 2025
+hostName=DELL
+id=1982316beec4e4a116e20b9cef68a1b8de6651ec35c
+method=file
+server=172.16.1.193\:63093

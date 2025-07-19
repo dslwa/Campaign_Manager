@@ -1,10 +1,11 @@
+// src/components/CampaignForm.js
+
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
-import DepositForm from './DepositForm';
 
 export default function CampaignForm({ editMode }) {
   const { id } = useParams();
@@ -12,19 +13,26 @@ export default function CampaignForm({ editMode }) {
 
   const [keywordOptions, setKeywordOptions] = useState([]);
   const [townOptions, setTownOptions] = useState([]);
+  const [keywords, setKeywords] = useState([]);
+
   useEffect(() => {
-    api.get('/keywords').then(res => setKeywordOptions(res.data)).catch(console.error);
-    api.get('/towns').then(res => setTownOptions(res.data)).catch(console.error);
+    api.get('/keywords')
+      .then(r => setKeywordOptions(r.data))
+      .catch(console.error);
+    api.get('/towns')
+      .then(r => setTownOptions(r.data))
+      .catch(console.error);
   }, []);
 
   const [balance, setBalance] = useState(null);
   useEffect(() => {
-    api.get('/account/balance').then(res => setBalance(res.data.balance)).catch(console.error);
+    api.get('/account/balance')
+      .then(r => setBalance(r.data.balance))
+      .catch(console.error);
   }, []);
 
   const [form, setForm] = useState({
     name: '',
-    keywords: '',
     bidAmount: '',
     campaignFund: '',
     status: false,
@@ -32,22 +40,23 @@ export default function CampaignForm({ editMode }) {
     radiusKm: ''
   });
   const [loading, setLoading] = useState(editMode);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!editMode) return;
     api.get(`/campaigns/${id}`)
-      .then(res => {
-        const c = res.data;
+      .then(r => {
+        const c = r.data;
         setForm({
           name: c.name,
-          keywords: c.keywords.join(','),
           bidAmount: c.bidAmount,
           campaignFund: c.campaignFund,
           status: c.status,
-          town: c.town,
+          town: c.town || '',
           radiusKm: c.radiusKm
         });
+        setKeywords(c.keywords);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -55,16 +64,27 @@ export default function CampaignForm({ editMode }) {
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleSubmit = e => {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
+    setSubmitting(true);
+
+    if (!keywords.length) {
+      setError('You must select at least one keyword.');
+      setSubmitting(false);
+      return;
+    }
 
     const payload = {
       name: form.name,
-      keywords: form.keywords.split(',').map(s => s.trim()).filter(Boolean),
+      keywords,
       bidAmount: parseFloat(form.bidAmount),
       campaignFund: parseFloat(form.campaignFund),
       status: form.status,
@@ -72,19 +92,15 @@ export default function CampaignForm({ editMode }) {
       radiusKm: parseInt(form.radiusKm, 10)
     };
 
-    if (!payload.keywords.length) {
-      setError('You must select at least one keyword.');
-      return;
-    }
-
     const campaignReq = editMode
       ? api.put(`/campaigns/${id}`, payload)
       : api.post('/campaigns', payload);
 
     campaignReq
-      .then(() => api.post(`/account/deduct?amount=${payload.campaignFund}`))
-      .then(res => {
-        setBalance(res.data.balance);
+
+      .then(() => api.get('/account/balance'))
+      .then(r => {
+        setBalance(r.data.balance);
         navigate('/campaigns');
       })
       .catch(err => {
@@ -94,25 +110,31 @@ export default function CampaignForm({ editMode }) {
           console.error(err);
           setError('An error occurred while saving.');
         }
-      });
+      })
+      .finally(() => setSubmitting(false));
   };
 
-  if (loading || balance === null) return <Spinner animation="border" />;
+  if (loading || balance === null) {
+    return <Spinner animation="border" className="d-block mx-auto my-5" />;
+  }
 
   return (
     <>
       <h2>{editMode ? 'Edit Campaign' : 'New Campaign'}</h2>
-      <p>Current account balance: <strong>{balance}</strong></p>
-
-      <DepositForm onBalanceUpdate={setBalance} />
-
+      <p>
+        Current account balance: <strong>${balance.toFixed(2)}</strong>
+      </p>
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <Form onSubmit={handleSubmit} noValidate>
-  
+      <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Campaign Name</Form.Label>
-          <Form.Control name="name" value={form.name} onChange={handleChange} required />
+          <Form.Control
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -121,8 +143,8 @@ export default function CampaignForm({ editMode }) {
             id="keywords"
             multiple
             options={keywordOptions}
-            selected={form.keywords ? form.keywords.split(',') : []}
-            onChange={selected => setForm(prev => ({ ...prev, keywords: selected.join(',') }))}
+            selected={keywords}
+            onChange={setKeywords}
             placeholder="Select keywords..."
             clearButton
           />
@@ -161,16 +183,22 @@ export default function CampaignForm({ editMode }) {
             onChange={handleChange}
           />
         </Form.Group>
-        
+
         <Form.Group className="mb-3">
           <Form.Label>Town</Form.Label>
-          <Form.Select name="town" value={form.town} onChange={handleChange} required>
-            <option value="">-- choose town --</option>
-            {townOptions.map(t => <option key={t} value={t}>{t}</option>)}
+          <Form.Select
+            name="town"
+            value={form.town}
+            onChange={handleChange}
+            required
+          >
+            <option value="">— choose town —</option>
+            {townOptions.map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
           </Form.Select>
         </Form.Group>
 
-        {/* Radius */}
         <Form.Group className="mb-3">
           <Form.Label>Radius (km)</Form.Label>
           <Form.Control
@@ -182,8 +210,19 @@ export default function CampaignForm({ editMode }) {
           />
         </Form.Group>
 
-        <Button type="submit" variant="primary">
-          {editMode ? 'Save Changes' : 'Create Campaign'}
+        <Button type="submit" variant="primary" disabled={submitting}>
+          {submitting ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />{' '}
+              Saving…
+            </>
+          ) : editMode ? 'Save Changes' : 'Create Campaign'}
         </Button>
       </Form>
     </>
