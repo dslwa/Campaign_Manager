@@ -1,5 +1,6 @@
 package com.example.campaign.service.impl;
 
+import com.example.campaign.exception.CampaignNotFoundException;
 import com.example.campaign.model.Campaign;
 import com.example.campaign.persistence.CampaignRepository;
 import com.example.campaign.service.CampaignService;
@@ -23,9 +24,8 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     public Campaign getById(Long id) {
         return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Campaign not found: " + id));
+                .orElseThrow(() -> new CampaignNotFoundException(id));
     }
-
     @Override
     public Campaign create(Campaign c) {
         return repo.save(c);
@@ -34,7 +34,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     public Campaign update(Long id, Campaign c) {
         if (!repo.existsById(id)) {
-            throw new RuntimeException("Campaign not found: " + id);
+            throw new CampaignNotFoundException(id);
         }
         c.setId(id);
         return repo.save(c);
@@ -43,7 +43,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     public void delete(Long id) {
         if (!repo.existsById(id)) {
-            throw new RuntimeException("Campaign not found: " + id);
+            throw new CampaignNotFoundException(id);
         }
         repo.deleteById(id);
     }
