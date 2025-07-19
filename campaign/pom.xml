@@ -149,11 +149,15 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>spotbugs-check</id>
 						<phase>verify</phase>
-						<goals><goal>check</goal></goals>
+						<goals>
+							<goal>check</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
+
 
 		</plugins>
 	</build>
