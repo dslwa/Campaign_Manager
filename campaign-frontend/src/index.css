@@ -20,7 +20,9 @@ body {
 .card {
   border: none;
   border-radius: 0.5rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .card:hover {
   transform: translateY(-5px);
@@ -44,7 +46,7 @@ body {
   background: #fff;
   padding: 2rem;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 @media (min-width: 768px) {

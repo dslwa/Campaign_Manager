@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios from "axios";
 
 export default axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
 });
