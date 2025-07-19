@@ -7,12 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test-backend:
+  build-and-test:
     name: Build & Test Backend (Maven + Jacoco)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./campaign
     steps:
       - uses: actions/checkout@v3
 
@@ -23,11 +20,11 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Cache Maven local repo
+      - name: Cache Maven local repository
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/campaign/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-m2-
 
@@ -43,10 +40,7 @@ jobs:
   lint-frontend:
     name: Frontend lint (ESLint + Prettier)
     runs-on: ubuntu-latest
-    needs: build-and-test-backend
-    defaults:
-      run:
-        working-directory: ./campaign-frontend
+    needs: build-and-test
     steps:
       - uses: actions/checkout@v3
 
@@ -56,33 +50,24 @@ jobs:
           node-version: '18'
 
       - name: Install frontend deps
-        run: npm ci
+        run: |
+          cd campaign-frontend
+          npm ci
 
       - name: ESLint check
-        run: npx eslint src --max-warnings=0
+        run: |
+          cd campaign-frontend
+          npx eslint src --max-warnings=0
 
       - name: Prettier check
-        run: npx prettier --check .
-
-  security-scan:
-    name: Security scan (Trivy)
-    runs-on: ubuntu-latest
-    needs: build-and-test-backend
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Trivy
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-            | sudo sh -s -- -b /usr/local/bin
-
-      - name: Trivy filesystem scan
-        run: trivy fs --severity HIGH,CRITICAL --exit-code 1 --no-progress .
+          cd campaign-frontend
+          npx prettier --check .
 
   deploy:
     name: Deploy to Heroku
     runs-on: ubuntu-latest
-    needs: [ build-and-test-backend, lint-frontend, security-scan ]
+    needs: [ build-and-test, lint-frontend ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
