@@ -1,0 +1,6 @@
+campaign-frontend/node_modules
+campaign-frontend/build
+
+campaign/target
+
+.git
