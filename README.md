@@ -1,92 +1,77 @@
-# Campaign Manager Application
+# Campaign Manager
 
-A simple web application to manage advertising campaigns, built with Spring Boot (backend) and React (frontend).
+[![Live Demo](https://img.shields.io/badge/demo-live-blue)](https://ancient-inlet-32210-0350a7d6b639.herokuapp.com)
 
-## Features
+**A lightweight web app for managing ad campaigns.**
 
-* **CRUD operations** for campaigns
-* **Account balance** management (deposit/withdraw)
-* **Keyword** suggestions and **towns** data
-* **API documentation** via Swagger/OpenAPI
-* **CI/CD** pipeline with GitHub Actions and Heroku deployment
+---
 
-## Prerequisites
+## Key Features
 
-* Java 17 or later
-* Maven 3.8+
-* Node.js 18+ and npm
-* Docker (for container deployment)
-* Heroku account and CLI
+* **Full CRUD:** Create, read, update, delete campaigns.
+* **Financials:** Deposit and withdraw from account balance.
+* **Dynamic Data:** Keyword suggestions and town selection.
+* **Status Control:** Toggle campaigns ON/OFF.
+* **Radius Filter:** Set campaign reach in kilometers.
+* **API Docs:** Swagger UI for easy exploration.
 
-## Getting Started
+---
 
-1. **Clone the repository:**
+## Tech Stack
 
-   ```bash
-   git clone https://github.com/dslwa/SpringBootCRUD.git
-   cd SpringBootCRUD
-   ```
+* **Backend:** Spring Boot, H2 in-memory database
+* **Frontend:** React with Create React App
+* **CI/CD:** GitHub Actions, Docker, Heroku
 
-2. **Backend setup:**
+---
 
-   ```bash
-   cd campaign
-   mvn clean install
-   mvn spring-boot:run
-   ```
+## Setup & Run
 
-   Runs backend at `http://localhost:8080`.
+```bash
+# 1. Clone repo
+git clone https://github.com/dslwa/SpringBootCRUD.git
 
-3. **Frontend setup:**
+# 2. Backend
+cd SpringBootCRUD/campaign
+mvn clean install
+mvn spring-boot:run
+# Server → http://localhost:8080
 
-   ```bash
-   cd ../campaign-frontend
-   npm install
-   npm start
-   ```
+# 3. Frontend
+cd ../campaign-frontend
+npm ci
+npm start
+# App → http://localhost:3000
+```
 
-   Opens React app at `http://localhost:3000` and proxies API calls to backend.
+---
 
 ## API Documentation
 
-Swagger UI is available at:
+* Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+* OpenAPI JSON: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
-```
-http://localhost:8080/swagger-ui.html
-```
-
-Or use OpenAPI JSON:
-
-```
-http://localhost:8080/v3/api-docs
-```
-
-## CI/CD Pipeline
-
-* **Build & Test:** Maven tests with JaCoCo coverage
-* **Linting:** ESLint & Prettier for frontend
-* **Deployment:** Docker container deployed to Heroku on push to `main`
+---
 
 ## Deployment
 
-1. **Login to Heroku:**
+1. **Login to Heroku CLI**
 
    ```bash
    heroku login
    heroku container:login
    ```
-2. **Build & push Docker image:**
+2. **Build & Push Docker**
 
    ```bash
    docker build -t registry.heroku.com/<app-name>/web campaign
    docker push registry.heroku.com/<app-name>/web
    ```
-3. **Release:**
+3. **Release**
 
    ```bash
    heroku container:release web --app <app-name>
    ```
 
-## License
+---
 
-MIT © Your Name
