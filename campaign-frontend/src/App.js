@@ -1,15 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { Container, Navbar, Nav } from "react-bootstrap";
+import { Container, Navbar, Nav, Button } from "react-bootstrap";
 
 import Home from "./components/Home";
 import CampaignList from "./components/CampaignList";
 import CampaignForm from "./components/CampaignForm";
 
 function App() {
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("darkMode") === "true",
+  );
+
+  useEffect(() => {
+    // Toggle on <html> to cover full viewport
+    document.documentElement.classList.toggle("dark-mode", darkMode);
+    document.body.classList.toggle("dark-mode", darkMode);
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
   return (
     <BrowserRouter>
-      <Navbar bg="dark" variant="dark" expand="lg">
+      <Navbar
+        bg={darkMode ? "dark" : "light"}
+        variant={darkMode ? "dark" : "light"}
+        expand="lg"
+      >
         <Container>
           <Navbar.Brand as={Link} to="/">
             Campaign Manager
@@ -27,6 +42,12 @@ function App() {
                 New Campaign
               </Nav.Link>
             </Nav>
+            <Button
+              variant={darkMode ? "outline-light" : "outline-dark"}
+              onClick={() => setDarkMode((dm) => !dm)}
+            >
+              {darkMode ? "Light Mode" : "Dark Mode"}
+            </Button>
           </Navbar.Collapse>
         </Container>
       </Navbar>
@@ -34,14 +55,12 @@ function App() {
       <Container className="mt-4">
         <Routes>
           <Route path="/" element={<Home />} />
-
           <Route path="/campaigns" element={<CampaignList />} />
           <Route path="/campaigns/new" element={<CampaignForm />} />
           <Route
             path="/campaigns/:id/edit"
             element={<CampaignForm editMode />}
           />
-
           <Route path="*" element={<div>Page not found</div>} />
         </Routes>
       </Container>

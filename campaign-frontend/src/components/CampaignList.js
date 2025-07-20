@@ -1,5 +1,3 @@
-// src/components/CampaignList.js
-
 import React, { useEffect, useState } from "react";
 import {
   Card,
