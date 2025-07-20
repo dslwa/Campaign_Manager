@@ -1,5 +1,3 @@
-// src/components/CampaignForm.js
-
 import React, { useState, useEffect } from "react";
 import { Form, Button, Spinner, Alert } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
@@ -16,22 +14,13 @@ export default function CampaignForm({ editMode }) {
   const [keywords, setKeywords] = useState([]);
 
   useEffect(() => {
-    api
-      .get("/keywords")
-      .then((r) => setKeywordOptions(r.data))
-      .catch(console.error);
-    api
-      .get("/towns")
-      .then((r) => setTownOptions(r.data))
-      .catch(console.error);
+    api.get("/keywords").then(r => setKeywordOptions(r.data)).catch(console.error);
+    api.get("/towns").then(r => setTownOptions(r.data)).catch(console.error);
   }, []);
 
   const [balance, setBalance] = useState(null);
   useEffect(() => {
-    api
-      .get("/account/balance")
-      .then((r) => setBalance(r.data.balance))
-      .catch(console.error);
+    api.get("/account/balance").then(r => setBalance(r.data.balance)).catch(console.error);
   }, []);
 
   const [form, setForm] = useState({
@@ -44,13 +33,12 @@ export default function CampaignForm({ editMode }) {
   });
   const [loading, setLoading] = useState(editMode);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState([]);
 
   useEffect(() => {
     if (!editMode) return;
-    api
-      .get(`/campaigns/${id}`)
-      .then((r) => {
+    api.get(`/campaigns/${id}`)
+      .then(r => {
         const c = r.data;
         setForm({
           name: c.name,
@@ -66,53 +54,67 @@ export default function CampaignForm({ editMode }) {
       .finally(() => setLoading(false));
   }, [editMode, id]);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : value
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
     if (submitting) return;
-    setError(null);
-    setSubmitting(true);
 
-    if (!keywords.length) {
-      setError("You must select at least one keyword.");
-      setSubmitting(false);
+    const newErrors = [];
+    if (!form.name.trim()) newErrors.push("Name is required.");
+    if (!keywords.length) newErrors.push("At least one keyword is required.");
+    const bid = parseFloat(form.bidAmount);
+    if (isNaN(bid) || bid < 0.01) newErrors.push("Bid Amount must be at least 0.01.");
+    const fund = parseFloat(form.campaignFund);
+    if (isNaN(fund) || fund < 0) newErrors.push("Campaign Fund must be zero or positive.");
+    if (!form.town) newErrors.push("Town is required.");
+    const radius = parseInt(form.radiusKm, 10);
+    if (isNaN(radius) || radius < 0) newErrors.push("Radius must be zero or positive.");
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors([]);
+    setSubmitting(true);
 
     const payload = {
       name: form.name,
       keywords,
-      bidAmount: parseFloat(form.bidAmount),
-      campaignFund: parseFloat(form.campaignFund),
+      bidAmount: bid,
+      campaignFund: fund,
       status: form.status,
       town: form.town || null,
-      radiusKm: parseInt(form.radiusKm, 10),
+      radiusKm: radius,
     };
 
-    const campaignReq = editMode
+    const req = editMode
       ? api.put(`/campaigns/${id}`, payload)
       : api.post("/campaigns", payload);
 
-    campaignReq
-
+    req
       .then(() => api.get("/account/balance"))
-      .then((r) => {
+      .then(r => {
         setBalance(r.data.balance);
         navigate("/campaigns");
       })
-      .catch((err) => {
+      .catch(err => {
         if (err.response?.status === 400) {
-          setError(err.response.data.message || "Insufficient funds.");
+          const msg = err.response.data.message;
+          const list = Array.isArray(msg)
+            ? msg
+            : [msg || "An error occurred while saving."];
+          setErrors(list);
         } else {
           console.error(err);
-          setError("An error occurred while saving.");
+          setErrors(["An unexpected error occurred while saving."]);
         }
       })
       .finally(() => setSubmitting(false));
@@ -122,23 +124,38 @@ export default function CampaignForm({ editMode }) {
     return <Spinner animation="border" className="d-block mx-auto my-5" />;
   }
 
+  // determine invalid states
+  const invalidFields = field => errors.some(err => err.toLowerCase().includes(field));
+
   return (
     <>
       <h2>{editMode ? "Edit Campaign" : "New Campaign"}</h2>
       <p>
         Current account balance: <strong>${balance.toFixed(2)}</strong>
       </p>
-      {error && <Alert variant="danger">{error}</Alert>}
 
-      <Form onSubmit={handleSubmit}>
+      {errors.length > 0 && (
+        <Alert variant="danger">
+          <ul className="mb-0">
+            {errors.map((errMsg, idx) => (
+              <li key={idx}>{errMsg}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      <Form onSubmit={handleSubmit} noValidate>
         <Form.Group className="mb-3">
           <Form.Label>Campaign Name</Form.Label>
           <Form.Control
             name="name"
             value={form.name}
             onChange={handleChange}
-            required
+            isInvalid={invalidFields("name")}
           />
+          <Form.Control.Feedback type="invalid">
+            Name is required.
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -150,6 +167,7 @@ export default function CampaignForm({ editMode }) {
             selected={keywords}
             onChange={setKeywords}
             placeholder="Select keywords..."
+            isInvalid={invalidFields("keyword")}
             clearButton
           />
         </Form.Group>
@@ -162,8 +180,11 @@ export default function CampaignForm({ editMode }) {
             step="0.01"
             value={form.bidAmount}
             onChange={handleChange}
-            required
+            isInvalid={invalidFields("bid amount")}
           />
+          <Form.Control.Feedback type="invalid">
+            Bid Amount must be at least 0.01.
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -174,8 +195,11 @@ export default function CampaignForm({ editMode }) {
             step="0.01"
             value={form.campaignFund}
             onChange={handleChange}
-            required
+            isInvalid={invalidFields("campaign fund")}
           />
+          <Form.Control.Feedback type="invalid">
+            Campaign Fund must be zero or positive.
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -194,15 +218,18 @@ export default function CampaignForm({ editMode }) {
             name="town"
             value={form.town}
             onChange={handleChange}
-            required
+            isInvalid={invalidFields("town")}
           >
             <option value="">— choose town —</option>
-            {townOptions.map((t) => (
+            {townOptions.map(t => (
               <option key={t} value={t}>
                 {t}
               </option>
             ))}
           </Form.Select>
+          <Form.Control.Feedback type="invalid">
+            Town is required.
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -212,8 +239,11 @@ export default function CampaignForm({ editMode }) {
             type="number"
             value={form.radiusKm}
             onChange={handleChange}
-            required
+            isInvalid={invalidFields("radius")}
           />
+          <Form.Control.Feedback type="invalid">
+            Radius must be zero or positive.
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Button type="submit" variant="primary" disabled={submitting}>
@@ -225,7 +255,7 @@ export default function CampaignForm({ editMode }) {
                 size="sm"
                 role="status"
                 aria-hidden="true"
-              />{" "}
+              />{' '}
               Saving…
             </>
           ) : editMode ? (
