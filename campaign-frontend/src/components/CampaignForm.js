@@ -14,13 +14,22 @@ export default function CampaignForm({ editMode }) {
   const [keywords, setKeywords] = useState([]);
 
   useEffect(() => {
-    api.get("/keywords").then(r => setKeywordOptions(r.data)).catch(console.error);
-    api.get("/towns").then(r => setTownOptions(r.data)).catch(console.error);
+    api
+      .get("/keywords")
+      .then((r) => setKeywordOptions(r.data))
+      .catch(console.error);
+    api
+      .get("/towns")
+      .then((r) => setTownOptions(r.data))
+      .catch(console.error);
   }, []);
 
   const [balance, setBalance] = useState(null);
   useEffect(() => {
-    api.get("/account/balance").then(r => setBalance(r.data.balance)).catch(console.error);
+    api
+      .get("/account/balance")
+      .then((r) => setBalance(r.data.balance))
+      .catch(console.error);
   }, []);
 
   const [form, setForm] = useState({
@@ -37,8 +46,9 @@ export default function CampaignForm({ editMode }) {
 
   useEffect(() => {
     if (!editMode) return;
-    api.get(`/campaigns/${id}`)
-      .then(r => {
+    api
+      .get(`/campaigns/${id}`)
+      .then((r) => {
         const c = r.data;
         setForm({
           name: c.name,
@@ -54,15 +64,15 @@ export default function CampaignForm({ editMode }) {
       .finally(() => setLoading(false));
   }, [editMode, id]);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (submitting) return;
 
@@ -70,12 +80,15 @@ export default function CampaignForm({ editMode }) {
     if (!form.name.trim()) newErrors.push("Name is required.");
     if (!keywords.length) newErrors.push("At least one keyword is required.");
     const bid = parseFloat(form.bidAmount);
-    if (isNaN(bid) || bid < 0.01) newErrors.push("Bid Amount must be at least 0.01.");
+    if (isNaN(bid) || bid < 0.01)
+      newErrors.push("Bid Amount must be at least 0.01.");
     const fund = parseFloat(form.campaignFund);
-    if (isNaN(fund) || fund < 0) newErrors.push("Campaign Fund must be zero or positive.");
+    if (isNaN(fund) || fund < 0)
+      newErrors.push("Campaign Fund must be zero or positive.");
     if (!form.town) newErrors.push("Town is required.");
     const radius = parseInt(form.radiusKm, 10);
-    if (isNaN(radius) || radius < 0) newErrors.push("Radius must be zero or positive.");
+    if (isNaN(radius) || radius < 0)
+      newErrors.push("Radius must be zero or positive.");
 
     if (newErrors.length > 0) {
       setErrors(newErrors);
@@ -101,11 +114,11 @@ export default function CampaignForm({ editMode }) {
 
     req
       .then(() => api.get("/account/balance"))
-      .then(r => {
+      .then((r) => {
         setBalance(r.data.balance);
         navigate("/campaigns");
       })
-      .catch(err => {
+      .catch((err) => {
         if (err.response?.status === 400) {
           const msg = err.response.data.message;
           const list = Array.isArray(msg)
@@ -125,7 +138,8 @@ export default function CampaignForm({ editMode }) {
   }
 
   // determine invalid states
-  const invalidFields = field => errors.some(err => err.toLowerCase().includes(field));
+  const invalidFields = (field) =>
+    errors.some((err) => err.toLowerCase().includes(field));
 
   return (
     <>
@@ -221,7 +235,7 @@ export default function CampaignForm({ editMode }) {
             isInvalid={invalidFields("town")}
           >
             <option value="">— choose town —</option>
-            {townOptions.map(t => (
+            {townOptions.map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
@@ -255,7 +269,7 @@ export default function CampaignForm({ editMode }) {
                 size="sm"
                 role="status"
                 aria-hidden="true"
-              />{' '}
+              />{" "}
               Saving…
             </>
           ) : editMode ? (
