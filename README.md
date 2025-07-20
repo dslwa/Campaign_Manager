@@ -29,7 +29,7 @@
 
 ```bash
 # 1. Clone repo
-git clone https://github.com/dslwa/SpringBootCRUD.git
+git clone https://github.com/dslwa/Campaign_Manager.git
 
 # 2. Backend
 cd SpringBootCRUD/campaign
@@ -72,6 +72,9 @@ npm start
    ```bash
    heroku container:release web --app <app-name>
    ```
-
+4. **Screenshots**
+    ![alt text](screenshots/image.png)
+    ![alt text](screenshots/image1.png)
+    ![alt text](screenshots/image2.png)
 ---
 
