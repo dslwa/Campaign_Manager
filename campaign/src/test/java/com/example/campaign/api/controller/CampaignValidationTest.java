@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
-class CampaignValidationStandaloneTest {
+class CampaignValidationTest {
 
     @Mock
     private CampaignService campaignService;
