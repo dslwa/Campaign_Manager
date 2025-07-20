@@ -76,7 +76,7 @@ class CampaignControllerIntegrationTest {
 
     @Test
     void delete_WhenExists_ShouldReturn204() throws Exception {
-        mockMvc.perform(delete("/api/campaigns/1"))
+         mockMvc.perform(delete("/api/campaigns/1"))
                 .andExpect(status().isNoContent());
     }
 
