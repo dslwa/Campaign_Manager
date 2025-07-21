@@ -20,7 +20,7 @@
 ## Tech Stack
 
 * **Backend:** Spring Boot, H2 in-memory database
-* **Frontend:** React with Create React App
+* **Frontend:** React
 * **CI/CD:** GitHub Actions, Docker, Heroku
 
 ---
